@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option go_package = "github.com/BirdyDK/DS-handin3";
+
+service ChittyChat {
+    rpc Join (JoinRequest) returns (JoinResponse);
+    rpc Leave (LeaveRequest) returns (LeaveResponse);
+    rpc Publish (PublishRequest) returns (PublishResponse);
+    rpc Broadcast (BroadcastRequest) returns (BroadcastResponse);
+}
+
+message JoinRequest {
+    string name = 1;
+}
+
+message JoinResponse {
+    string message = 1;
+}
+
+message LeaveRequest {
+    string name = 1;
+}
+
+message LeaveResponse {
+    string message = 1;
+}
+
+message PublishRequest {
+    string name = 1;
+    string message = 2;
+}
+
+message PublishResponse {
+    string message = 1;
+}
+
+message BroadcastRequest {
+    repeated string messages = 1;
+    int32 timestamp = 2;
+}
+
+message BroadcastResponse {
+    string message = 1;
+}
