@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"strconv"
 
 	pb "DS-handin3/service/github.com/BirdyDK/DS-handin3"
 
@@ -13,11 +14,11 @@ import (
 type server struct{}
 
 func (s *server) Broadcast(ctx context.Context, in *pb.BroadcastRequest) (*pb.BroadcastResponse, error) {
-	return &pb.BroadcastResponse{Message: "Hello " + in.Message + in.Timestamp}, nil
+	return &pb.BroadcastResponse{Message: in.Message + strconv.Itoa(int(in.Timestamp))}, nil
 }
 
 func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.PublishResponse, error) {
-	return &pb.PublishResponse{Message: "Hello " + in.Name + in.Message}, nil
+	return &pb.PublishResponse{Message: in.Name + in.Message}, nil
 }
 
 func (s *server) Join(ctx context.Context, in *pb.JoinRequest) (*pb.JoinResponse, error) {
