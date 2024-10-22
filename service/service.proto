@@ -35,7 +35,7 @@ message PublishResponse {
 }
 
 message BroadcastRequest {
-    repeated string messages = 1;
+    string message = 1;
     int32 timestamp = 2;
 }
 

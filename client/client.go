@@ -7,7 +7,8 @@ import (
 	"os"
 	"time"
 
-	pb "../service/github.com/BirdyDK/DS-handin3"
+	pb "DS-handin3/service/github.com/BirdyDK/DS-handin3"
+
 	"google.golang.org/grpc"
 )
 

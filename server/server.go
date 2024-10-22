@@ -5,18 +5,19 @@ import (
 	"log"
 	"net"
 
-	pb "../service/github.com/BirdyDK/DS-handin3"
+	pb "DS-handin3/service/github.com/BirdyDK/DS-handin3"
+
 	"google.golang.org/grpc"
 )
 
 type server struct{}
 
 func (s *server) Broadcast(ctx context.Context, in *pb.BroadcastRequest) (*pb.BroadcastResponse, error) {
-	return &pb.BroadcastResponse{message: "Hello " + in.message + in.timestamp}, nil
+	return &pb.BroadcastResponse{Message: "Hello " + in.Message + in.Timestamp}, nil
 }
 
 func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.PublishResponse, error) {
-	return &pb.PublishResponse{message: "Hello " + in.name + in.message}, nil
+	return &pb.PublishResponse{Message: "Hello " + in.Name + in.Message}, nil
 }
 
 func (s *server) Join(ctx context.Context, in *pb.JoinRequest) (*pb.JoinResponse, error) {
