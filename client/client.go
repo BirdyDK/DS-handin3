@@ -52,10 +52,17 @@ func publish(client pb.ChittyChatClient, name, message string) {
 		log.Println("Message length exceeds 128 characters")
 		return
 	}
-	_, err := client.Publish(context.Background(), &pb.PublishRequest{Name: name, Message: message})
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := client.Publish(ctx, &pb.PublishRequest{Name: name, Message: message})
 	if err != nil {
 		log.Fatalf("could not publish: %v", err)
 	}
+
+	// Print the response message from the server
+	log.Printf("Server Response: %s", r.GetMessage())
 }
 
 func listenBroadcasts(client pb.ChittyChatClient) {

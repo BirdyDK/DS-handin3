@@ -38,6 +38,12 @@ func (s *server) Leave(ctx context.Context, in *pb.LeaveRequest) (*pb.LeaveRespo
 	return &pb.LeaveResponse{Message: "Participant " + in.Name + " left Chitty-Chat"}, nil
 }
 
+func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.PublishResponse, error) {
+	// Example logic to handle publishing a message
+	message := "Published message from " + in.Name + ": " + in.Message
+	return &pb.PublishResponse{Message: message}, nil
+}
+
 func main() {
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
