@@ -11,6 +11,7 @@ service ChittyChat {
 
 message JoinRequest {
     string name = 1;
+    int32 timestamp = 2;
 }
 
 message JoinResponse {
@@ -19,6 +20,7 @@ message JoinResponse {
 
 message LeaveRequest {
     string name = 1;
+    int32 timestamp = 2;
 }
 
 message LeaveResponse {
@@ -28,6 +30,7 @@ message LeaveResponse {
 message PublishRequest {
     string name = 1;
     string message = 2;
+    int32 timestamp = 3;
 }
 
 message PublishResponse {
