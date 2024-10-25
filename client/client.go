@@ -23,7 +23,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	log.Printf("Enter username:")
 	name, _ := reader.ReadString('\n')
-	name = name[:len(name)-1] // Trim the newline character
+	name = name[:len(name)-2] // Trim the newline character
 
 	join(client, name)
 	defer leave(client, name)

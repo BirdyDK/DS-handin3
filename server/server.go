@@ -70,7 +70,7 @@ func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.Publis
 	if len(in.Message) > 128 {
 		return nil, fmt.Errorf("message length exceeds 128 characters")
 	}
-	message := "Published message from " + in.Name + ": " + in.Message
+	message := in.Name + ": " + in.Message
 	s.broadcast(message)
 	return &pb.PublishResponse{Message: message}, nil
 }
