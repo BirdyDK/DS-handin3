@@ -53,29 +53,42 @@ func (s *server) broadcast(message string) {
 	for _, ch := range s.participants {
 		ch <- message
 	}
-	log.Printf("Broadcasted message: %s", message)
+	log.Printf("Broadcasted message:\r\n%s", message)
 }
 
 func (s *server) Join(ctx context.Context, in *pb.JoinRequest) (*pb.JoinResponse, error) {
+	if in.GetTimestamp() > s.timestamp {
+		s.timestamp = in.GetTimestamp()
+	}
 	message := s.joinHandler(in.Name)
-	return &pb.JoinResponse{Message: message}, nil
+	return &pb.JoinResponse{Message: message, Timestamp: s.timestamp}, nil
 }
 
 func (s *server) Leave(ctx context.Context, in *pb.LeaveRequest) (*pb.LeaveResponse, error) {
+	if in.GetTimestamp() > s.timestamp {
+		s.timestamp = in.GetTimestamp()
+	}
 	message := s.leaveHandler(in.Name)
-	return &pb.LeaveResponse{Message: message}, nil
+	return &pb.LeaveResponse{Message: message, Timestamp: s.timestamp}, nil
 }
 
 func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.PublishResponse, error) {
+	if in.GetTimestamp() > s.timestamp {
+		s.timestamp = in.GetTimestamp()
+	}
 	if len(in.Message) > 128 {
 		return nil, fmt.Errorf("message length exceeds 128 characters")
 	}
-	message := in.Name + ": " + in.Message
+	s.timestamp++
+	message := "(Lamport " + strconv.Itoa(int(s.timestamp)) + ") " + in.Name + ": " + in.Message
 	s.broadcast(message)
-	return &pb.PublishResponse{Message: message}, nil
+	return &pb.PublishResponse{Message: message, Timestamp: s.timestamp}, nil
 }
 
 func (s *server) Subscribe(in *pb.SubscribeRequest, stream pb.ChittyChat_SubscribeServer) error {
+	if in.GetTimestamp() > s.timestamp {
+		s.timestamp = in.GetTimestamp()
+	}
 	s.mu.Lock()
 	ch := s.participants[in.Name]
 	s.mu.Unlock()
@@ -83,7 +96,7 @@ func (s *server) Subscribe(in *pb.SubscribeRequest, stream pb.ChittyChat_Subscri
 		return fmt.Errorf("participant not found")
 	}
 	for msg := range ch {
-		if err := stream.Send(&pb.SubscribeResponse{Message: msg}); err != nil {
+		if err := stream.Send(&pb.SubscribeResponse{Message: msg, Timestamp: s.timestamp}); err != nil {
 			return err
 		}
 	}
