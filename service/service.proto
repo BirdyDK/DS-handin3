@@ -6,12 +6,11 @@ service ChittyChat {
     rpc Join (JoinRequest) returns (JoinResponse);
     rpc Leave (LeaveRequest) returns (LeaveResponse);
     rpc Publish (PublishRequest) returns (PublishResponse);
-    rpc Broadcast (BroadcastRequest) returns (BroadcastResponse);
+    rpc Subscribe (SubscribeRequest) returns (SubscribeResponse);
 }
 
 message JoinRequest {
     string name = 1;
-    int32 timestamp = 2;
 }
 
 message JoinResponse {
@@ -20,7 +19,6 @@ message JoinResponse {
 
 message LeaveRequest {
     string name = 1;
-    int32 timestamp = 2;
 }
 
 message LeaveResponse {
@@ -37,11 +35,10 @@ message PublishResponse {
     string message = 1;
 }
 
-message BroadcastRequest {
-    string message = 1;
-    int32 timestamp = 2;
+message SubscribeRequest {
+    string name = 1;
 }
 
-message BroadcastResponse {
+message SubscribeResponse {
     string message = 1;
 }

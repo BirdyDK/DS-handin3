@@ -22,7 +22,7 @@ const (
 	ChittyChat_Join_FullMethodName      = "/ChittyChat/Join"
 	ChittyChat_Leave_FullMethodName     = "/ChittyChat/Leave"
 	ChittyChat_Publish_FullMethodName   = "/ChittyChat/Publish"
-	ChittyChat_Broadcast_FullMethodName = "/ChittyChat/Broadcast"
+	ChittyChat_Subscribe_FullMethodName = "/ChittyChat/Subscribe"
 )
 
 // ChittyChatClient is the client API for ChittyChat service.
@@ -32,7 +32,7 @@ type ChittyChatClient interface {
 	Join(ctx context.Context, in *JoinRequest, opts ...grpc.CallOption) (*JoinResponse, error)
 	Leave(ctx context.Context, in *LeaveRequest, opts ...grpc.CallOption) (*LeaveResponse, error)
 	Publish(ctx context.Context, in *PublishRequest, opts ...grpc.CallOption) (*PublishResponse, error)
-	Broadcast(ctx context.Context, in *BroadcastRequest, opts ...grpc.CallOption) (*BroadcastResponse, error)
+	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (*SubscribeResponse, error)
 }
 
 type chittyChatClient struct {
@@ -73,10 +73,10 @@ func (c *chittyChatClient) Publish(ctx context.Context, in *PublishRequest, opts
 	return out, nil
 }
 
-func (c *chittyChatClient) Broadcast(ctx context.Context, in *BroadcastRequest, opts ...grpc.CallOption) (*BroadcastResponse, error) {
+func (c *chittyChatClient) Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (*SubscribeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BroadcastResponse)
-	err := c.cc.Invoke(ctx, ChittyChat_Broadcast_FullMethodName, in, out, cOpts...)
+	out := new(SubscribeResponse)
+	err := c.cc.Invoke(ctx, ChittyChat_Subscribe_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ type ChittyChatServer interface {
 	Join(context.Context, *JoinRequest) (*JoinResponse, error)
 	Leave(context.Context, *LeaveRequest) (*LeaveResponse, error)
 	Publish(context.Context, *PublishRequest) (*PublishResponse, error)
-	Broadcast(context.Context, *BroadcastRequest) (*BroadcastResponse, error)
+	Subscribe(context.Context, *SubscribeRequest) (*SubscribeResponse, error)
 	mustEmbedUnimplementedChittyChatServer()
 }
 
@@ -110,8 +110,8 @@ func (UnimplementedChittyChatServer) Leave(context.Context, *LeaveRequest) (*Lea
 func (UnimplementedChittyChatServer) Publish(context.Context, *PublishRequest) (*PublishResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Publish not implemented")
 }
-func (UnimplementedChittyChatServer) Broadcast(context.Context, *BroadcastRequest) (*BroadcastResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Broadcast not implemented")
+func (UnimplementedChittyChatServer) Subscribe(context.Context, *SubscribeRequest) (*SubscribeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
 func (UnimplementedChittyChatServer) mustEmbedUnimplementedChittyChatServer() {}
 func (UnimplementedChittyChatServer) testEmbeddedByValue()                    {}
@@ -188,20 +188,20 @@ func _ChittyChat_Publish_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ChittyChat_Broadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BroadcastRequest)
+func _ChittyChat_Subscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubscribeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChittyChatServer).Broadcast(ctx, in)
+		return srv.(ChittyChatServer).Subscribe(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ChittyChat_Broadcast_FullMethodName,
+		FullMethod: ChittyChat_Subscribe_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChittyChatServer).Broadcast(ctx, req.(*BroadcastRequest))
+		return srv.(ChittyChatServer).Subscribe(ctx, req.(*SubscribeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -226,8 +226,8 @@ var ChittyChat_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ChittyChat_Publish_Handler,
 		},
 		{
-			MethodName: "Broadcast",
-			Handler:    _ChittyChat_Broadcast_Handler,
+			MethodName: "Subscribe",
+			Handler:    _ChittyChat_Subscribe_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
