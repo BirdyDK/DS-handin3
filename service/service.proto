@@ -11,18 +11,22 @@ service ChittyChat {
 
 message JoinRequest {
     string name = 1;
+    int32 timestamp = 2;
 }
 
 message JoinResponse {
     string message = 1;
+    int32 timestamp = 2;
 }
 
 message LeaveRequest {
     string name = 1;
+    int32 timestamp = 2;
 }
 
 message LeaveResponse {
     string message = 1;
+    int32 timestamp = 2;
 }
 
 message PublishRequest {
@@ -33,12 +37,15 @@ message PublishRequest {
 
 message PublishResponse {
     string message = 1;
+    int32 timestamp = 2;
 }
 
 message SubscribeRequest {
     string name = 1;
+    int32 timestamp = 2;
 }
 
 message SubscribeResponse {
     string message = 1;
+    int32 timestamp = 2;
 }
