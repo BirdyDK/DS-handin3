@@ -20,16 +20,19 @@ func main() {
 	defer conn.Close()
 	client := pb.NewChittyChatClient(conn)
 
-	name := "participant_name"
+	reader := bufio.NewReader(os.Stdin)
+	log.Printf("Enter username:")
+	name, _ := reader.ReadString('\n')
+	name = name[:len(name)-1] // Trim the newline character
+
 	join(client, name)
 	defer leave(client, name)
 
-	go listenBroadcasts(client)
+	go listenBroadcasts(client, name)
 
-	reader := bufio.NewReader(os.Stdin)
 	for {
 		msg, _ := reader.ReadString('\n')
-		publish(client, name, msg)
+		publish(client, name, msg[:len(msg)-1]) // Trim the newline character
 	}
 }
 
@@ -38,6 +41,7 @@ func join(client pb.ChittyChatClient, name string) {
 	if err != nil {
 		log.Fatalf("could not join: %v", err)
 	}
+	log.Printf("Joined chat as %s", name)
 }
 
 func leave(client pb.ChittyChatClient, name string) {
@@ -45,6 +49,7 @@ func leave(client pb.ChittyChatClient, name string) {
 	if err != nil {
 		log.Fatalf("could not leave: %v", err)
 	}
+	log.Printf("Left chat as %s", name)
 }
 
 func publish(client pb.ChittyChatClient, name, message string) {
@@ -52,24 +57,25 @@ func publish(client pb.ChittyChatClient, name, message string) {
 		log.Println("Message length exceeds 128 characters")
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-
 	r, err := client.Publish(ctx, &pb.PublishRequest{Name: name, Message: message})
 	if err != nil {
 		log.Fatalf("could not publish: %v", err)
 	}
-
-	// Print the response message from the server
 	log.Printf("Server Response: %s", r.GetMessage())
 }
 
-func listenBroadcasts(client pb.ChittyChatClient) {
+func listenBroadcasts(client pb.ChittyChatClient, name string) {
+	stream, err := client.Subscribe(context.Background(), &pb.SubscribeRequest{Name: name})
+	if err != nil {
+		log.Fatalf("could not subscribe: %v", err)
+	}
 	for {
-		// Your logic to listen for broadcast messages
-		// This could involve a streaming RPC method
-		// For example purposes, it will just loop indefinitely
-		time.Sleep(time.Second) // Simulate waiting for messages
+		in, err := stream.Recv()
+		if err != nil {
+			log.Fatalf("failed to receive broadcast: %v", err)
+		}
+		log.Printf("Broadcast: %s", in.GetMessage())
 	}
 }

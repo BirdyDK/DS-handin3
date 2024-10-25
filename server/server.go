@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
-	"time"
+	"sync"
 
 	pb "DS-handin3/service/github.com/BirdyDK/DS-handin3"
 
@@ -14,34 +15,79 @@ import (
 
 type server struct {
 	pb.UnimplementedChittyChatServer
+	participants map[string]chan string
+	mu           sync.Mutex
+	timestamp    int32
 }
 
-var timestamp int32 = 0
-
-func UpdateTimestamp(newTime int32) int32 {
-	if newTime > timestamp {
-		timestamp = newTime
+func NewServer() *server {
+	return &server{
+		participants: make(map[string]chan string),
 	}
-	timestamp++
-	return timestamp
 }
 
-func (s *server) Broadcast(ctx context.Context, in *pb.BroadcastRequest) (*pb.BroadcastResponse, error) {
-	return &pb.BroadcastResponse{Message: in.Message + strconv.Itoa(int(in.Timestamp))}, nil
+func (s *server) joinHandler(name string) string {
+	s.mu.Lock()
+	ch := make(chan string, 10)
+	s.participants[name] = ch
+	s.timestamp++
+	s.mu.Unlock()
+	message := "Participant " + name + " joined Chitty-Chat at Lamport time " + strconv.Itoa(int(s.timestamp))
+	s.broadcast(message)
+	return message
+}
+
+func (s *server) leaveHandler(name string) string {
+	s.mu.Lock()
+	delete(s.participants, name)
+	s.timestamp++
+	s.mu.Unlock()
+	message := "Participant " + name + " left Chitty-Chat at Lamport time " + strconv.Itoa(int(s.timestamp))
+	s.broadcast(message)
+	return message
+}
+
+func (s *server) broadcast(message string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, ch := range s.participants {
+		ch <- message
+	}
+	log.Printf("Broadcasted message: %s", message)
 }
 
 func (s *server) Join(ctx context.Context, in *pb.JoinRequest) (*pb.JoinResponse, error) {
-	return &pb.JoinResponse{Message: "Participant " + in.Name + " joined Chitty-Chat"}, nil
+	message := s.joinHandler(in.Name)
+	return &pb.JoinResponse{Message: message}, nil
 }
 
 func (s *server) Leave(ctx context.Context, in *pb.LeaveRequest) (*pb.LeaveResponse, error) {
-	return &pb.LeaveResponse{Message: "Participant " + in.Name + " left Chitty-Chat"}, nil
+	message := s.leaveHandler(in.Name)
+	return &pb.LeaveResponse{Message: message}, nil
 }
 
 func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.PublishResponse, error) {
-	// Example logic to handle publishing a message
+	if len(in.Message) > 128 {
+		return nil, fmt.Errorf("message length exceeds 128 characters")
+	}
 	message := "Published message from " + in.Name + ": " + in.Message
+	s.broadcast(message)
 	return &pb.PublishResponse{Message: message}, nil
+}
+
+func (s *server) Subscribe(in *pb.SubscribeRequest, stream pb.ChittyChat_SubscribeServer) error {
+	s.mu.Lock()
+	ch := s.participants[in.Name]
+	s.mu.Unlock()
+	if ch == nil {
+		return fmt.Errorf("participant not found")
+	}
+	for msg := range ch {
+		if err := stream.Send(&pb.SubscribeResponse{Message: msg}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func main() {
@@ -50,12 +96,8 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterChittyChatServer(s, &server{})
+	pb.RegisterChittyChatServer(s, NewServer())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
-	}
-	for {
-
-		time.Sleep(time.Second)
 	}
 }
