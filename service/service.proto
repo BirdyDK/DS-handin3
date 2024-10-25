@@ -6,7 +6,7 @@ service ChittyChat {
     rpc Join (JoinRequest) returns (JoinResponse);
     rpc Leave (LeaveRequest) returns (LeaveResponse);
     rpc Publish (PublishRequest) returns (PublishResponse);
-    rpc Subscribe (SubscribeRequest) returns (SubscribeResponse);
+    rpc Subscribe (SubscribeRequest) returns (stream SubscribeResponse);
 }
 
 message JoinRequest {
