@@ -30,7 +30,6 @@ func (s *server) joinHandler(name string) string {
 	s.mu.Lock()
 	ch := make(chan string, 10)
 	s.participants[name] = ch
-	s.timestamp++
 	s.mu.Unlock()
 	message := "Participant " + name + " joined Chitty-Chat at Lamport time " + strconv.Itoa(int(s.timestamp))
 	s.broadcast(message)
@@ -40,7 +39,6 @@ func (s *server) joinHandler(name string) string {
 func (s *server) leaveHandler(name string) string {
 	s.mu.Lock()
 	delete(s.participants, name)
-	s.timestamp++
 	s.mu.Unlock()
 	message := "Participant " + name + " left Chitty-Chat at Lamport time " + strconv.Itoa(int(s.timestamp))
 	s.broadcast(message)
@@ -59,6 +57,8 @@ func (s *server) broadcast(message string) {
 func (s *server) Join(ctx context.Context, in *pb.JoinRequest) (*pb.JoinResponse, error) {
 	if in.GetTimestamp() > s.timestamp {
 		s.timestamp = in.GetTimestamp()
+	} else {
+		s.timestamp++
 	}
 	message := s.joinHandler(in.Name)
 	return &pb.JoinResponse{Message: message, Timestamp: s.timestamp}, nil
@@ -67,6 +67,8 @@ func (s *server) Join(ctx context.Context, in *pb.JoinRequest) (*pb.JoinResponse
 func (s *server) Leave(ctx context.Context, in *pb.LeaveRequest) (*pb.LeaveResponse, error) {
 	if in.GetTimestamp() > s.timestamp {
 		s.timestamp = in.GetTimestamp()
+	} else {
+		s.timestamp++
 	}
 	message := s.leaveHandler(in.Name)
 	return &pb.LeaveResponse{Message: message, Timestamp: s.timestamp}, nil
@@ -75,11 +77,12 @@ func (s *server) Leave(ctx context.Context, in *pb.LeaveRequest) (*pb.LeaveRespo
 func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.PublishResponse, error) {
 	if in.GetTimestamp() > s.timestamp {
 		s.timestamp = in.GetTimestamp()
+	} else {
+		s.timestamp++
 	}
 	if len(in.Message) > 128 {
 		return nil, fmt.Errorf("message length exceeds 128 characters")
 	}
-	s.timestamp++
 	message := "(Lamport " + strconv.Itoa(int(s.timestamp)) + ") " + in.Name + ": " + in.Message
 	s.broadcast(message)
 	return &pb.PublishResponse{Message: message, Timestamp: s.timestamp}, nil
@@ -88,6 +91,8 @@ func (s *server) Publish(ctx context.Context, in *pb.PublishRequest) (*pb.Publis
 func (s *server) Subscribe(in *pb.SubscribeRequest, stream pb.ChittyChat_SubscribeServer) error {
 	if in.GetTimestamp() > s.timestamp {
 		s.timestamp = in.GetTimestamp()
+	} else {
+		s.timestamp++
 	}
 	s.mu.Lock()
 	ch := s.participants[in.Name]

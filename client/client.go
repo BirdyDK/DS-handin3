@@ -39,6 +39,7 @@ func main() {
 }
 
 func join(client pb.ChittyChatClient, name string, timestamp int32) {
+	timestamp++
 	_, err := client.Join(context.Background(), &pb.JoinRequest{Name: name, Timestamp: timestamp})
 	if err != nil {
 		log.Fatalf("could not join: %v", err)
@@ -47,6 +48,7 @@ func join(client pb.ChittyChatClient, name string, timestamp int32) {
 }
 
 func leave(client pb.ChittyChatClient, name string, timestamp int32) {
+	timestamp++
 	_, err := client.Leave(context.Background(), &pb.LeaveRequest{Name: name, Timestamp: timestamp})
 	if err != nil {
 		log.Fatalf("could not leave: %v", err)
@@ -55,6 +57,7 @@ func leave(client pb.ChittyChatClient, name string, timestamp int32) {
 }
 
 func publish(client pb.ChittyChatClient, name, message string, timestamp int32) {
+	timestamp++
 	if len(message) > 128 {
 		log.Println("Message length exceeds 128 characters")
 		return
@@ -69,6 +72,7 @@ func publish(client pb.ChittyChatClient, name, message string, timestamp int32) 
 }
 
 func listenBroadcasts(client pb.ChittyChatClient, name string, timestamp int32) {
+	timestamp++
 	stream, err := client.Subscribe(context.Background(), &pb.SubscribeRequest{Name: name, Timestamp: timestamp})
 	if err != nil {
 		log.Fatalf("could not subscribe: %v", err)
